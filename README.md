@@ -18,4 +18,4 @@ ENTER      = Select as wallpaper <br>
 Made by Miko みこ <3 <br>
 
 You're gonna need swww and mpvpaper (of course) <br> 
-and socat if you want to mute mpvpaper while it's playing :3
+~~and socat if you want to mute mpvpaper while it's playing :3~~
