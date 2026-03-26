@@ -1,4 +1,4 @@
-use std::{env::{self}, fs, os::unix::process::CommandExt, process::{Command, Stdio, exit}, path::PathBuf};
+use std::{env::{self}, fs, os::unix::process::CommandExt, process::{Command, Stdio, exit}, path::PathBuf, path::Path};
 use dirs;
 use users::get_effective_uid;
 use rsbash::{rashf};
@@ -116,15 +116,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut crt_idx = 0; // Current index
 
-    let _ = helper::draw(&files, crt_idx);
+    let _ = helper::draw(&files, crt_idx, WALLPAPER_DIR, MPV_SOCKET_PATH);
     loop {
-        if files.is_empty() {
-            println!("No wallpapers found in {:?} \r\n", wallpaper_dir);
-            println!("Press R to refresh \r\n");
-        }
-        else {
-            println!("Wallpaper directory at {:?} \r\n", wallpaper_dir);
-        }
+        
 
         //let selected = files[crt_idx].to_str().unwrap();
         let selected = files.get(crt_idx);
@@ -153,7 +147,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     let _ = helper::send_command(MPV_SOCKET_PATH, vec!["seek", &format!("-{SEEK_VALUE_PRECISE}"), "relative"]);
                 },
                 KeyCode::Char('p') => {let _ = helper::send_command(MPV_SOCKET_PATH, vec!["cycle", "pause"]);}
-                KeyCode::Char('k') => {let _ = rashf!("pkill mpvpaper");},
+                KeyCode::Char('k') => {
+                    let mpv_socket_path = Path::new(MPV_SOCKET_PATH);
+                    let _ = rashf!("pkill mpvpaper");
+                    let _ = fs::remove_file(mpv_socket_path);
+                },
 
                 KeyCode::Char('c') => {
                     if key_event.modifiers.contains(KeyModifiers::CONTROL){
@@ -212,7 +210,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 _ => {}
             }
         }
-        let _ = helper::draw(&files, crt_idx);
+        let _ = helper::draw(&files, crt_idx, WALLPAPER_DIR, MPV_SOCKET_PATH);
     }
 
     disable_raw_mode()?;

@@ -1,9 +1,10 @@
-use std::{io::{self, BufWriter ,Write, stdout}, path::PathBuf, os::unix::{net::UnixStream}};
+use std::{io::{self, BufWriter ,Write, stdout}, path::PathBuf, path::Path,os::unix::{net::UnixStream}};
 use crossterm::{cursor, execute, terminal::{Clear, ClearType}};
 use serde_json::{json};
 
 // Draw logic
-pub fn draw(files: &[PathBuf], crt_idx:usize) -> io::Result<()>{
+
+pub fn draw(files: &[PathBuf], crt_idx:usize, wallpaper_dir:&str, socket_path:&str) -> io::Result<()>{
     let mut out = BufWriter::new(stdout());
     print!("\x1B[2J\x1B[3J\x1B[H"); // actually clears the screen, for some reason Clear(ClearType::All) doesn't work on alacritty... 
     execute!(out, cursor::MoveTo(0,0), Clear(ClearType::All))?; // idk though, i might just be dumb as hell
@@ -19,6 +20,23 @@ pub fn draw(files: &[PathBuf], crt_idx:usize) -> io::Result<()>{
         else {
             buffer.push_str(&format!(" {}\r\n", name));
         }
+    }
+
+    let socketpath = Path::new(socket_path);
+
+    if files.is_empty() {
+            buffer.push_str(&format!("\r\nNo wallpapers found in {:?} \r\n", wallpaper_dir));
+            buffer.push_str("Press R to refresh \r\n");
+        }
+        else {
+            buffer.push_str(&format!("\r\nWallpaper directory at {:?} \r\n", wallpaper_dir));
+    }
+
+    if socketpath.exists(){
+        buffer.push_str(&format!("mpvpaper socket found at {:?}", socketpath));
+    }
+    else {
+        buffer.push_str("Socket not found");
     }
 
     buffer.push_str("\r\n");
